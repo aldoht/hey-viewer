@@ -17,43 +17,47 @@
     </div>
 
     <div *ngIf="!isLoading && predictedPatterns && predictedPatterns.length > 0; else noPredictions" class="results-dynamic-content">
-      <p class="summary-text">
-        Para el archivo <strong *ngIf="currentClientFileName !== 'Archivo Desconocido'">{{ currentClientFileName }}</strong><span *ngIf="currentClientFileName === 'Archivo Desconocido'">cargado</span>, se han identificado
-        <strong>{{ predictedPatterns.length }}</strong> patrones de gastos recurrentes probables:
-      </p>
-
-      <div class="predictions-grid">
-        <div *ngFor="let pattern of predictedPatterns" class="prediction-card">
+      
+      <div class="prediction-grid">
+        <div class="prediction-card" *ngFor="let pattern of predictedPatterns">
           <div class="card-header">
             <h3 class="comercio-name">{{ pattern.comercio }}</h3>
-            <span class="giro-tag" *ngIf="pattern.giro_comercio">{{ pattern.giro_comercio }}</span>
+            <span class="card-subtitle" *ngIf="pattern.giro_comercio">{{ pattern.giro_comercio }}</span>
           </div>
           <div class="card-body">
             <div class="info-row">
-              <span class="info-label">Monto Base Estimado:</span>
-              <span class="info-value amount">{{ pattern.monto_base_estimado | currency:'MXN':'symbol':'1.2-2' }}</span>
+              <span class="info-label">Monto Estimado:</span>
+              <span class="info-value amount">{{ pattern.estimated_monto | currency:'MXN':'symbol':'1.2-2' }}</span>
             </div>
-            <div class="info-row" *ngIf="pattern.num_ocurrencias_previas">
+            <div class="info-row" *ngIf="pattern.estimated_interval_days">
+              <span class="info-label">Intervalo Estimado:</span>
+              <span class="info-value">{{ pattern.estimated_interval_days }} días</span>
+            </div>
+            <div class="info-row" *ngIf="pattern.num_occurrences">
               <span class="info-label">Ocurrencias Previas:</span>
-              <span class="info-value">{{ pattern.num_ocurrencias_previas }}</span>
+              <span class="info-value">{{ pattern.num_occurrences }}</span>
             </div>
-            <div class="info-row" *ngIf="pattern.confianza !== undefined">
-              <span class="info-label">Confianza Estimada:</span>
-              <span class="info-value" [style.color]="getConfidenceColor(pattern.confianza)">
-                {{ pattern.confianza | percent:'1.0-0' }}
-              </span>
+            <div class="info-row" *ngIf="pattern.first_occurrence_date">
+              <span class="info-label">Primera Ocurrencia:</span>
+              <span class="info-value">{{ pattern.first_occurrence_date | date:'dd/MMM/yyyy' }}</span>
+            </div>
+            <div class="info-row" *ngIf="pattern.last_occurrence_date">
+              <span class="info-label">Última Ocurrencia Real:</span>
+              <span class="info-value">{{ pattern.last_occurrence_date | date:'dd/MMM/yyyy' }}</span>
             </div>
 
-            <h4 class="next-payments-title">Próximas 3 Predicciones:</h4>
-            <ul class="next-payments-list">
-              <li *ngFor="let pred of pattern.proximas_predicciones" class="payment-item">
-                <span class="payment-date">{{ pred.fecha_predicha | date:'dd/MMM/yyyy' }}</span>
-                <span class="payment-amount">{{ pred.monto_estimado | currency:'MXN':'symbol':'1.2-2' }}</span>
-              </li>
-            </ul>
-          </div>
-          <div class="card-footer-info" *ngIf="pattern.ultima_fecha_real">
-            Basado en última transacción el: {{ pattern.ultima_fecha_real | date:'dd/MMM/yyyy' }}
+            <div class="next-payments-section" *ngIf="pattern.proximas_predicciones && pattern.proximas_predicciones.length > 0">
+              <h4 class="next-payments-title">Próximas Fechas Estimadas</h4>
+              <ul class="next-payments-list">
+                <li class="payment-item" *ngFor="let pred of pattern.proximas_predicciones">
+                  <span class="payment-date">{{ pred.fecha_predicha | date:'dd/MMM/yyyy' }}</span>
+                  <span class="payment-amount">{{ pred.monto_estimado | currency:'MXN':'symbol':'1.2-2' }}</span>
+                </li>
+              </ul>
+            </div>
+            <div class="card-footer-info" *ngIf="pattern.last_occurrence_date">
+              Basado en última transacción el: {{ pattern.last_occurrence_date | date:'dd/MMM/yyyy' }}
+            </div>
           </div>
         </div>
       </div>
@@ -65,10 +69,9 @@
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
         </svg>
         <h3>No se Identificaron Patrones Recurrentes</h3>
-        <p>No se encontraron gastos recurrentes claros en el archivo <strong *ngIf="currentClientFileName !== 'Archivo Desconocido'">{{ currentClientFileName }}</strong><span *ngIf="currentClientFileName === 'Archivo Desconocido'">proporcionado</span> o el cliente no presenta patrones predecibles.</p>
-        <button class="primary-action" (click)="goBack()" style="margin-top: 1.5rem;">Intentar con Otro Archivo</button>
+        <p *ngIf="noPatternsMessage">{{ noPatternsMessage }}</p>
+        <p *ngIf="!noPatternsMessage">No se encontraron gastos recurrentes claros en los datos proporcionados para el análisis. Por favor, intenta con un archivo diferente o con más transacciones.</p>
       </div>
     </ng-template>
   </div>
-
 </div>

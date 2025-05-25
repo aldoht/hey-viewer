@@ -1,7 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
-import { FormsModule } from '@angular/forms'; 
+import { FormsModule } from '@angular/forms';
+import { HttpClient, HttpHeaders } from '@angular/common/http'; // Importa HttpClient y HttpHeaders
+import { lastValueFrom } from 'rxjs'; // Para usar async/await con HttpClient
 
 // Definimos aquí la interfaz para los datos de ejemplo que pasaremos
 interface MonthlyPrediction {
@@ -9,12 +11,16 @@ interface MonthlyPrediction {
   monto_estimado: number;
 }
 interface RecurringPatternPrediction {
+  id: string; // Añadir el ID para el patrón recurrente
   comercio: string;
   giro_comercio?: string;
-  monto_base_estimado: number;
-  intervalo_dias_estimado: number;
-  ultima_fecha_real?: string;
-  proximas_predicciones: MonthlyPrediction[];
+  estimated_monto: number; // Corregido según la salida de Flask
+  estimated_interval_days: number; // Corregido según la salida de Flask
+  first_occurrence_date: string; // Corregido según la salida de Flask
+  last_occurrence_date: string; // Corregido según la salida de Flask
+  num_occurrences: number; // Corregido según la salida de Flask
+  avg_reconstruction_error_in_group: number; // Corregido según la salida de Flask
+  proximas_predicciones?: MonthlyPrediction[]; // Opcional, si quieres generarlas en el frontend
   confianza?: number;
   num_ocurrencias_previas?: number;
 }
@@ -32,118 +38,80 @@ export class FileUploaderComponent {
   feedbackMessage: string | null = null;
   isError: boolean = false;
 
-  constructor(private router: Router) {}
+  // URL de tu API Flask
+  private FLASK_API_URL = 'http://localhost:3000/predict_recurrent'; // Asegúrate de que este sea el puerto correcto de tu Flask
 
-  // Dummy function para el evento change del input file
+  constructor(private router: Router, private http: HttpClient) {} // Inyecta HttpClient
+
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
       this.selectedFile = input.files[0];
-      // Actualizar el texto del label para mostrar el nombre del archivo
-      const fileNameDisplay = document.getElementById('file-name-display');
-      if (fileNameDisplay) {
-        fileNameDisplay.textContent = this.selectedFile.name;
-      }
-      this.feedbackMessage = "Archivo '" + this.selectedFile.name + "' listo para analizar.";
+      this.feedbackMessage = `Archivo seleccionado: ${this.selectedFile.name}`;
       this.isError = false;
     } else {
       this.selectedFile = null;
-      const fileNameDisplay = document.getElementById('file-name-display');
-      if (fileNameDisplay) {
-        fileNameDisplay.textContent = 'Arrastra y suelta tu archivo .csv aquí o haz clic para seleccionar';
-      }
+      this.feedbackMessage = "Por favor, selecciona un archivo CSV.";
+      this.isError = true;
     }
   }
 
-  // Dummy function para el botón, solo para simular
-  triggerUploadAndNavigate(): void {
+  async triggerUploadAndNavigate(): Promise<void> {
     if (!this.selectedFile) {
-      this.feedbackMessage = "Por favor, selecciona un archivo .csv primero.";
+      this.feedbackMessage = "Por favor, selecciona un archivo primero para analizar.";
       this.isError = true;
       return;
     }
 
     this.isLoading = true;
-    this.feedbackMessage = "Simulando análisis del archivo: " + this.selectedFile.name;
+    this.feedbackMessage = `Analizando transacciones de ${this.selectedFile.name}...`;
     this.isError = false;
 
-    const today = new Date();
+    try {
+      const fileContent = await this.readFileContent(this.selectedFile);
 
-    const examplePredictions: RecurringPatternPrediction[] = [
-      {
-        comercio: 'NETFLIX (Prueba)',
-        giro_comercio: 'STREAMING',
-        monto_base_estimado: 149.00,
-        intervalo_dias_estimado: 30,
-        ultima_fecha_real: new Date(today.getFullYear(), today.getMonth(), 18).toISOString().split('T')[0],
-        proximas_predicciones: this.calculateNextMonthsForDummy(new Date(today.getFullYear(), today.getMonth(), 18), 149.00, 30, 3),
-        confianza: 0.95,
-        num_ocurrencias_previas: 12
-      },
-      {
-        comercio: 'SPOTIFY (Prueba)',
-        giro_comercio: 'MUSICA',
-        monto_base_estimado: 115.00,
-        intervalo_dias_estimado: 30,
-        ultima_fecha_real: new Date(today.getFullYear(), today.getMonth(), 22).toISOString().split('T')[0],
-        proximas_predicciones: this.calculateNextMonthsForDummy(new Date(today.getFullYear(), today.getMonth(), 22), 115.00, 30, 3),
-        confianza: 0.92,
-        num_ocurrencias_previas: 20
-      },
-      {
-        comercio: 'GYM PRUEBA',
-        giro_comercio: 'SALUD Y FITNESS',
-        monto_base_estimado: 550.00,
-        intervalo_dias_estimado: 30,
-        ultima_fecha_real: new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0],
-        proximas_predicciones: this.calculateNextMonthsForDummy(new Date(today.getFullYear(), today.getMonth(), 1), 550.00, 30, 3),
-        confianza: 0.88,
-        num_ocurrencias_previas: 8
-      }
-    ];
+      const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
+      const body = {
+        transactions_csv: fileContent
+      };
 
-    // Simular un pequeño retraso como si se estuviera procesando
-    setTimeout(() => {
+      // Realiza la solicitud POST a tu API Flask
+      const response: any = await lastValueFrom(
+        this.http.post(this.FLASK_API_URL, body, { headers: headers })
+      );
+
       this.isLoading = false;
-      // Navegar a la página de resultados y pasar los datos de ejemplo
-      this.router.navigate(['results'], { state: { predictions: examplePredictions, fileName: this.selectedFile?.name } });
-    }, 1500); // Simula 1.5 segundos de carga
 
-    /*if (this.selectedFile) {
-      this.isLoading = true;
-      this.feedbackMessage = "Procesando archivo: " + this.selectedFile.name;
-      this.isError = false;
-      console.log("Simulando subida y análisis...");
-      // Aquí iría la lógica real de subida y luego navegación.
-      // Por ahora, solo simulamos.
-      setTimeout(() => {
-        this.isLoading = false;
-        this.feedbackMessage = "¡Análisis completado! (simulado)"; // Mensaje de éxito
-        this.isError = false;
-        // this.router.navigate(['/results'], { state: { predictions: ... } });
-      }, 2500);
-    } else {
-      this.feedbackMessage = "Por favor, selecciona un archivo primero.";
+      if (response && response.status === 'success' && response.recurrent_patterns) {
+        this.feedbackMessage = "¡Análisis completado! Patrones identificados.";
+        // Navega al componente de resultados y pasa los patrones identificados
+        this.router.navigate(['/results'], { state: { predictedPatterns: response.recurrent_patterns, clientFileName: this.selectedFile.name } });
+      } else if (response && response.status === 'success' && response.message) {
+        this.feedbackMessage = response.message; // "No recurrent patterns identified."
+        this.router.navigate(['/results'], { state: { predictedPatterns: [], clientFileName: this.selectedFile.name, message: response.message } });
+      } else {
+        this.isError = true;
+        this.feedbackMessage = response.error || "Error desconocido al procesar el archivo.";
+      }
+
+    } catch (error: any) {
+      this.isLoading = false;
       this.isError = true;
-    }*/
+      console.error("Error al subir o procesar el archivo:", error);
+      this.feedbackMessage = `Error al conectar con el servidor o procesar: ${error.message || 'Error desconocido'}`;
+    }
   }
 
-  // Helper function para generar las próximas fechas
-  private calculateNextMonthsForDummy(lastDate: Date, baseAmount: number, intervalDays: number, count: number, variableAmount: boolean = false): MonthlyPrediction[] {
-    const predictions: MonthlyPrediction[] = [];
-    let currentDate = new Date(lastDate);
-
-    for (let i = 0; i < count; i++) {
-      currentDate.setDate(currentDate.getDate() + intervalDays);
-      let predictedAmount = baseAmount;
-      if (variableAmount) {
-        predictedAmount = baseAmount * (1 + (Math.random() - 0.5) * 0.1);
-      }
-      predictions.push({
-        fecha_predicha: new Date(currentDate).toISOString().split('T')[0],
-        monto_estimado: parseFloat(predictedAmount.toFixed(2))
-      });
-    }
-    return predictions;
+  private readFileContent(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        resolve(e.target?.result as string);
+      };
+      reader.onerror = (e) => {
+        reject(new Error("Error al leer el archivo."));
+      };
+      reader.readAsText(file);
+    });
   }
 }

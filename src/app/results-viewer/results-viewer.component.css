@@ -86,10 +86,11 @@
     font-weight: 600;
 }
   
-.predictions-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 1.5rem;
+.prediction-grid {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+    justify-content: space-around;
 }
   
 .prediction-card {
@@ -101,6 +102,7 @@
     flex-direction: column;
     transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
     border: 1px solid var(--border-color); /* Borde sutil */
+    width: 40%;
 }
   
 .prediction-card:hover {

@@ -1,16 +1,9 @@
-import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
+import { Routes } from '@angular/router';
 import { FileUploaderComponent } from './file-uploader/file-uploader.component';
 import { ResultsViewerComponent } from './results-viewer/results-viewer.component';
 
 export const routes: Routes = [
   { path: '', component: FileUploaderComponent },
   { path: 'results', component: ResultsViewerComponent },
-  { path: '**', redirectTo: '' }
+  { path: '**', redirectTo: '' } // Redirigir a la página principal si la ruta no existe
 ];
-
-@NgModule({
-  imports: [RouterModule.forRoot(routes)],
-  exports: [RouterModule]
-})
-export class AppRoutingModule { }
