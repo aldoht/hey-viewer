@@ -4,7 +4,7 @@
 
 Este proyecto se desarrolló como proyecto para el DSC Datathon 2025, se trata de una RNN LSTM para clasificar pagos recurrentes en transacciones de usuarios. En este repositorio sólo se encuentra la aplicación web.
 
-Para ejecutar el proyecto es necesario levantar el servidor de la API y la aplicación web simultáneamente; además, en la aplicación sólo se deberán subir las transacciones de un sólo usuario. Se pueden encontrar ejemplos de archivos para subir en la carpeta [examples](https://github.com/rogelio-02/hey-lstm-predictor/tree/master/examples) del otro repositorio (referenciado en [otras herramientas](##Otras herramientas)) y un video de muestra en el siguiente enlace de [youtube](https://youtu.be/JYptV3NMq5Q).
+Para ejecutar el proyecto es necesario levantar el servidor de la API y la aplicación web simultáneamente; además, en la aplicación sólo se deberán subir las transacciones de un sólo usuario. Se pueden encontrar ejemplos de archivos para subir en la carpeta [examples](https://github.com/rogelio-02/hey-lstm-predictor/tree/master/examples) del otro repositorio (referenciado en [otras herramientas](##otras-herramientas)) y un video de muestra en el siguiente enlace de [youtube](https://youtu.be/JYptV3NMq5Q).
 
 ## Análisis
 
