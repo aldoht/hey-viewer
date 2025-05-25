@@ -9,5 +9,6 @@ import {FileUploaderComponent} from './file-uploader/file-uploader.component';
   styleUrl: './app.component.css'
 })
 export class AppComponent {
-  title = 'untitled';
+  title = 'PrediccionTransacciones';
+  currentYear = new Date().getFullYear();
 }

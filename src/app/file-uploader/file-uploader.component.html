@@ -1,5 +1,27 @@
-<form action="post">
-  <label for="file-input">Ingrese las transacciones del usuario en formato .csv</label>
-  <input type="file" name="file-input" accept="text/csv">
-  <button type="submit">Enviar archivo</button>
-</form>
+<div class="uploader-wrapper">
+  <h2 class="uploader-title">Identifica Gastos Recurrentes</h2>
+  <p class="uploader-subtitle">
+    Sube el historial de transacciones de un cliente (archivo <code>.csv</code>) para que nuestra IA analice y prediga sus patrones de gastos recurrentes.
+  </p>
+
+  <form class="upload-form">
+    <label for="file-upload" class="file-upload-label">
+      <div class="file-icon-area">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="48px" height="48px">
+          <path d="M0 0h24v24H0z" fill="none"/>
+          <path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/>
+        </svg>
+        <span id="file-name-display">Arrastra y suelta tu archivo .csv aquí o haz clic para seleccionar</span>
+      </div>
+      <input type="file" id="file-upload" name="file-input" accept=".csv" (change)="onFileSelected($event)">
+    </label>
+
+    <button type="button" class="primary-action upload-button" (click)="triggerUploadAndNavigate()" [disabled]="isLoading">
+      <span *ngIf="!isLoading">Analizar Transacciones</span>
+      <span *ngIf="isLoading">Procesando...<span class="spinner-inline"></span></span > </button>
+    
+    <div *ngIf="feedbackMessage" [ngClass]="isError ? 'feedback-error' : 'feedback-success'">
+      {{ feedbackMessage }}
+    </div>
+  </form>
+</div>

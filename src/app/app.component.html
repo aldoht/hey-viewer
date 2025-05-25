@@ -1,6 +1,17 @@
-<main>
-  <h1>Predicción de transacciones recurrentes</h1>
-  <app-file-uploader></app-file-uploader>
-</main>
+<div class="page-wrapper">
+  <div class="main-container">
+    <header>
+      <h1>
+        <img src="hey-banco.png" class="logo-hey">
+        <span>Predicción de Transacciones Recurrentes</span>
+      </h1>
+    </header>
+    <main class="content-area">
+      <router-outlet></router-outlet>
+      </main>
+  </div>
 
-<router-outlet />
+  <footer>
+    <p> DSC Datathon {{ currentYear }}  - Reto Hey Banco - Equipo Datos Tumbados</p>
+  </footer>
+</div>

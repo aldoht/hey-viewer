@@ -1,0 +1,74 @@
+<div class="results-page-content">
+
+  <div class="results-actual-container">
+    <div class="results-controls-header">
+      <h2 class="results-title">Resultados de la Predicción</h2>
+      <button class="primary-action" (click)="goBack()">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" width="20px" height="20px" style="margin-right: 8px;">
+          <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+        </svg>
+        Cargar Otro Archivo
+      </button>
+    </div>
+
+    <div *ngIf="isLoading" class="loading-indicator">
+      <div class="spinner-hey"></div>
+      <p>Analizando transacciones y generando predicciones...</p>
+    </div>
+
+    <div *ngIf="!isLoading && predictedPatterns && predictedPatterns.length > 0; else noPredictions" class="results-dynamic-content">
+      <p class="summary-text">
+        Para el archivo <strong *ngIf="currentClientFileName !== 'Archivo Desconocido'">{{ currentClientFileName }}</strong><span *ngIf="currentClientFileName === 'Archivo Desconocido'">cargado</span>, se han identificado
+        <strong>{{ predictedPatterns.length }}</strong> patrones de gastos recurrentes probables:
+      </p>
+
+      <div class="predictions-grid">
+        <div *ngFor="let pattern of predictedPatterns" class="prediction-card">
+          <div class="card-header">
+            <h3 class="comercio-name">{{ pattern.comercio }}</h3>
+            <span class="giro-tag" *ngIf="pattern.giro_comercio">{{ pattern.giro_comercio }}</span>
+          </div>
+          <div class="card-body">
+            <div class="info-row">
+              <span class="info-label">Monto Base Estimado:</span>
+              <span class="info-value amount">{{ pattern.monto_base_estimado | currency:'MXN':'symbol':'1.2-2' }}</span>
+            </div>
+            <div class="info-row" *ngIf="pattern.num_ocurrencias_previas">
+              <span class="info-label">Ocurrencias Previas:</span>
+              <span class="info-value">{{ pattern.num_ocurrencias_previas }}</span>
+            </div>
+            <div class="info-row" *ngIf="pattern.confianza !== undefined">
+              <span class="info-label">Confianza Estimada:</span>
+              <span class="info-value" [style.color]="getConfidenceColor(pattern.confianza)">
+                {{ pattern.confianza | percent:'1.0-0' }}
+              </span>
+            </div>
+
+            <h4 class="next-payments-title">Próximas 3 Predicciones:</h4>
+            <ul class="next-payments-list">
+              <li *ngFor="let pred of pattern.proximas_predicciones" class="payment-item">
+                <span class="payment-date">{{ pred.fecha_predicha | date:'dd/MMM/yyyy' }}</span>
+                <span class="payment-amount">{{ pred.monto_estimado | currency:'MXN':'symbol':'1.2-2' }}</span>
+              </li>
+            </ul>
+          </div>
+          <div class="card-footer-info" *ngIf="pattern.ultima_fecha_real">
+            Basado en última transacción el: {{ pattern.ultima_fecha_real | date:'dd/MMM/yyyy' }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <ng-template #noPredictions>
+      <div *ngIf="!isLoading" class="no-results-container">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="64px" height="64px" style="margin-bottom: 1rem; color: var(--text-secondary);">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+        </svg>
+        <h3>No se Identificaron Patrones Recurrentes</h3>
+        <p>No se encontraron gastos recurrentes claros en el archivo <strong *ngIf="currentClientFileName !== 'Archivo Desconocido'">{{ currentClientFileName }}</strong><span *ngIf="currentClientFileName === 'Archivo Desconocido'">proporcionado</span> o el cliente no presenta patrones predecibles.</p>
+        <button class="primary-action" (click)="goBack()" style="margin-top: 1.5rem;">Intentar con Otro Archivo</button>
+      </div>
+    </ng-template>
+  </div>
+
+</div>
